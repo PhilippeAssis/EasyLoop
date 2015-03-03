@@ -1,4 +1,5 @@
 <?php
+
 /*
 	********************************************************
 	Easy Loop
@@ -36,16 +37,17 @@
 */
 
 
-class EasyLoop{
+class EasyLoop
+{
     public $result = null; // Resultado da pesquisa
     public $current = null; // Resultado da pesquisa atual
     public $matrix = null; // Resultado da pesquisa
     public $count = 0;// quantidade de linhas
-    public $default_unic_key = 'result'; // Key do valor do loop, caso o resultado recebido seja unico (uma string)
+    public $defaultUnicKey = 'result'; // Key do valor do loop, caso o resultado recebido seja unico (uma string)
     public $start = false; //Define que o loop já começou
     public $prepend = null; // Conteudo anterior ao resultado
     public $append = null;// Conteudo posterior ao resultado
-    public $count_loop = 0;
+    public $countLoop = 0;
     public $replace = null;
     public $slashes = true;// Remover barra invertida "\"
 
@@ -53,16 +55,10 @@ class EasyLoop{
     /* *************************************************
     Captura e trata os dados recebidos para o loop
     ************************************************* */
-    function result($result){
-        if(is_resource($result))
-            if(method_exists($result,'fetchAll'))
-                $this->result = $result->fetchAll(PDO::FETCH_ASSOC);
-            else
-                $this->result = mysql_fetch_assoc($result);
-        else
-            $this->result = $result;
-
-        $this->count  = count($result);
+    function result($result)
+    {
+        $this->result = $this->objectToArray($result);
+        $this->count = count($result);
     }
 
     /* *************************************************
@@ -70,29 +66,29 @@ class EasyLoop{
         Exemplo de uso:
             while(init()){}
     ************************************************* */
-    function init(){
-        ++$this->count_loop;// Declara posição do loop
+    function init()
+    {
+        ++$this->countLoop;// Declara posição do loop
 
-        if(!$this->start){
+        if (!$this->start) {
             $this->clear();
             $this->start = true;
-            $this->count_loop = 1;
+            $this->countLoop = 1;
         }
 
-        if(!$this->result or is_null($this->result))
+        if (!$this->result or is_null($this->result))
             return false;
 
-        if(is_null($this->current))
-            $this->current = $this->object_to_array(current($this->result));
+        if (is_null($this->current))
+            $this->current = current($this->result);
         else
-            $this->current = $this->object_to_array(next($this->result));
+            $this->current = next($this->result);
 
-        if(!$this->current){
+        if (!$this->current) {
             $this->start = false;
             $this->clear();
             return false;
-        }
-        else
+        } else
             return true;
 
     }
@@ -100,19 +96,20 @@ class EasyLoop{
     /* *************************************************
     Verifica a existencia de valores para o loop
     ************************************************* */
-    function exists($return = true){// Verifica a existencia de resultados
-        if(!$this->result or is_null($this->result))
-            return !$return;
-        else
-            return $return;
+    function exists()
+    {// Verifica a existencia de resultados
+        if (!$this->result or is_null($this->result))
+            return false;
+        return true;
     }
 
     /* *************************************************
     Captura e trata os dados recebidos para o loop enviando os para result().
     IMPORTANTE: Isso não é obrigatorio na construção da classe
     ************************************************* */
-    function __construct($result=false){
-        if($result)
+    function __construct($result = false)
+    {
+        if ($result)
             $this->result($result);
     }
 
@@ -120,35 +117,55 @@ class EasyLoop{
         METODOS DE RESULTADO
     ************************************************* */
     // Retorna um resultado
-    function post($key,$tags = true, $append = ''){
+    function post($key, $tags = true, $append = '')
+    {
         $this->replace($key);
 
-        if(!isset($this->current[$key]))
+        if (!isset($this->current[$key]))
             return null;
 
 
-        if($tags === true and !is_null($this->prepend))
-            return $this->prepend.$this->slashes($this->current[$key]).$this->append;
-        elseif(isset($tags)  and $tags !== true)
-            return $tags.$this->slashes($this->current[$key]).$append;
+        if ($tags === true and !is_null($this->prepend))
+            return $this->prepend . $this->slashes($this->current[$key]) . $this->append;
+        elseif (isset($tags) and $tags !== true)
+            return $tags . $this->slashes($this->current[$key]) . $append;
         else
             return $this->slashes($this->current[$key]);
     }
 
-    function echo_($key ,$tags = true, $append = ''){ // Escreve o resultado
+    // Escreve o resultado
+    function echo_($key, $tags = true, $append = '')
+    {
         echo $this->post($key, $tags, $append);
     }
-    function e($key ,$tags = true, $append = ''){ // O mesmo que echo_
+
+    // O mesmo que echo_
+    function e($key, $tags = true, $append = '')
+    {
         echo $this->post($key, $tags, $append);
     }
-    function return_($key ,$tags = true, $append = ''){// Retorna o resultado
+
+    // Retorna o resultado
+    function return_($key, $tags = true, $append = '')
+    {
         return $this->post($key, $tags, $append);
     }
-    function r($key ,$tags = true, $append = ''){// O mesmo que return_
+
+    // O mesmo que return_
+    function r($key, $tags = true, $append = '')
+    {
         return $this->post($key, $tags, $append);
     }
-    function print_current(){ // Printa toda a linha com print_r
+
+    // Printa toda a linha com print_r
+    function printCurrent()
+    {
         print_r($this->current);
+    }
+
+    function jsonDecode($key)
+    {
+        return json_decode($this->post($key, false));
     }
 
 
@@ -156,32 +173,36 @@ class EasyLoop{
         FERRAMENTAS DA CLASSE
     ************************************************* */
     //Substitue keys
-    function replace(&$key){
+    function replace(&$key)
+    {
         $key = isset($this->replace[$key]) ? $this->replace[$key] : $key;
     }
 
     // Retorna a quantidade de linhas
-    function count($echo = true){
-        if($echo)
+    function count($echo = true)
+    {
+        if ($echo)
             echo $this->count;
         else
             return $this->count;
     }
 
     // Retorna a de impressões por loop
-    function count_loop($echo = true){
-        if($echo)
-            echo $this->count_loop;
+    function countLoop($echo = true)
+    {
+        if ($echo)
+            echo $this->countLoop;
         else
-            return $this->count_loop;
+            return $this->countLoop;
     }
 
     //Transforma objeto em array
-    function object_to_array($data){
-        if (is_array($data) || is_object($data)){
+    function objectToArray($data)
+    {
+        if (is_array($data) || is_object($data)) {
             $result = [];
             foreach ($data as $key => $value)
-                $result[$key] = $this->object_to_array($value);
+                $result[$key] = $this->objectToArray($value);
 
             return $result;
         }
@@ -189,15 +210,17 @@ class EasyLoop{
     }
 
     // Remover barra invertida
-    function slashes($string){
+    function slashes($string)
+    {
         return ($this->slashes) ? stripslashes($string) : $string;
     }
 
     //Limpa os principais valores cacheados da classe
-    function clear(){
-        if($this->result)
+    function clear()
+    {
+        if ($this->result)
             reset($this->result);
         $this->current = null;
-        $this->count_loop = 0;
+        $this->countLoop = 0;
     }
 }
