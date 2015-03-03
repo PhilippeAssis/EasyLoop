@@ -37,6 +37,7 @@
 */
 
 
+
 class EasyLoop
 {
     public $result = null; // Resultado da pesquisa
